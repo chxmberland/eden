@@ -1,0 +1,26 @@
+{
+  "name": "eden",
+  "version": "1.0.0",
+  "description": "Eden is a web application that aims to bring asset tokenization to the general public.",
+  "main": "index.js",
+  "scripts": {
+    "devStart": "nodemon api.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chxmberland/eden.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chxmberland/eden/issues"
+  },
+  "homepage": "https://github.com/chxmberland/eden#readme",
+  "dependencies": {
+    "mongoose": "^6.3.5"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.16"
+  }
+}
