@@ -5,11 +5,7 @@ const vendorModel = new mongoose.schema({
     username: String,
     vendorID: String,
     hash: String,
-    location: {
-        city: String,
-        street: String,
-        streetNumber: Number
-    },
+    locations: [String],
     transactionHistory: [String],
     listings: [String],
     holdings: [{

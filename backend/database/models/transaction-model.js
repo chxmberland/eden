@@ -6,7 +6,7 @@ const transactionModel = new mongoose.Schema({
     vendorID: String,
     tokenID: String,
     tokensPurchased: Number,
-    transactionValueInUSD: Number,
+    transactionValue: Number,
     currencyPayedWith: String,
     amountPayed: Number
 })

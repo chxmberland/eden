@@ -2,11 +2,12 @@ const mongoose = require('mongoose')
 
 const assetListingModel = new mongoose.Schema({
     assetID: String,
+    vendorID: String,
     info: {
-        itemName: String,
+        assetName: String,
         description: String
     },
-    relatedTokenID: String,
+    tokenID: String,
     tokensSold: Number,
     assetPrice: Number
 })
