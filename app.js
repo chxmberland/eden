@@ -1,14 +1,22 @@
 const mongoose = require('mongoose')
+require('dotenv').config() // Allows accsess to environment variables
 
-const modelLocation = "./backend/database/models/"
+const connectionUri = `mongodb+srv://admin:${process.env.DB_AUTH}@atlascluster.wmlg9zu.mongodb.net/?retryWrites=true&w=majority`
+const connectionParams = {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+}
 
-const userModel = require(modelLocation + "user-model.js")
+function connectToDatabase(connectionUri, connectionParams) {
+    mongoose.connect(connectionUri, connectionParams, function(error) {
+        if (error) {
+            console.log("Error!" + error);
+        }
+    });
+}
 
-mongoose.connect(
-    "monogdb://localhost/testdb", 
-    () => {
-        console.log("Connected")
-    },
-    e => console.log(e)
-)
+/*
+TESTING BEYOND THIS POINT
+*/
 
+connectToDatabase(connectionUri, connectionParams)
