@@ -7,7 +7,7 @@ const assetListingModel = new mongoose.Schema({
         assetName: String,
         description: String
     },
-    tokenID: String,
+    tokenID: String,        // Referencing an external document
     tokensSold: Number,
     assetPrice: Number
 })
