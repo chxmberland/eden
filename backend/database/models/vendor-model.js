@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const vendorModel = new mongoose.schema({
+const vendorModel = new mongoose.Schema({
     walletAddresss: String,
     username: String,
     vendorID: String,
@@ -14,4 +14,5 @@ const vendorModel = new mongoose.schema({
     }]
 })
 
-module.exports = mongoose.model("vendor", vendorModel)
+const Vendor = mongoose.model("vendor", vendorModel)
+module.exports = Vendor

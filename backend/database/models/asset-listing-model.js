@@ -12,4 +12,5 @@ const assetListingModel = new mongoose.Schema({
     assetPrice: Number
 })
 
-module.exports = mongoose.model("assetListing", assetListingModel)
+const AssetListing =  mongoose.model("assetListings", assetListingModel)
+module.exports = AssetListing
