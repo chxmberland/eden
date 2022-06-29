@@ -138,3 +138,16 @@ function updateHoldings(userID, tokenID, amount) {
 function deleteUser(userID) {
 
 }
+
+module.exports = {
+    createUser,
+    createVendor,
+    createLocation,
+    addHoldings,
+    getUser,
+    updateUsername,
+    updateWalletAddress,
+    updateVendorLocation,
+    updateHoldings,
+    deleteUser
+}
