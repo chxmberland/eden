@@ -1,3 +1,6 @@
+const modelLocation = '../../models'
+const User = require(`${modelLocation}/user-model.js`)
+
 /* 
     Creating a user in the database.    
 
@@ -7,6 +10,24 @@
 */
 function createUser(walletAddress, username, hash) {
 
+    // TODO: Create unique user ID
+
+    const newUser = new User({
+        walletAddress: walletAddress,
+        username: username,
+        userID: "test-id",
+        hash: hash,
+        transactionHistory: [],
+        holdings: []
+    })
+
+    newUser.save(function(err) {
+        if (err) {
+            console.log(`There was an issue saving the user ${username}\n\n${err}`)
+        } else {
+            console.log(`Sucsessfuly saved ${username} to Atlas.`)
+        }
+    })
 }
 
 

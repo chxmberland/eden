@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const assetListingModel = new mongoose.Schema({
+const locationModel = new mongoose.Schema({
     locationID: String,
     vendorID: String,
     country: String,
@@ -10,4 +10,5 @@ const assetListingModel = new mongoose.Schema({
     postalCode: String
 })
 
-module.exports = mongoose.model("location", assetListingModel)
+const Location = mongoose.model("locations", locationModel)
+module.exports = Location

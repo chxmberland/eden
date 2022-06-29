@@ -7,8 +7,9 @@ const transactionModel = new mongoose.Schema({
     tokenID: String,            // Referencing an external document
     tokensPurchased: Number,
     transactionValue: Number,
-    currencyPayedWith: String,
+    currencyPayedWith: String,  // TokenID or reference to a token not listed on Eden
     amountPayed: Number
 })
 
-module.exports = mongoose.model("transaction", transactionModel)
+const Transaction =  mongoose.model("transactions", transactionModel)
+module.exports = Transaction

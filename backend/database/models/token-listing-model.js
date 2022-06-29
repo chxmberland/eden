@@ -7,3 +7,5 @@ const tokenListingModel = new mongoose.Schema({
     numberOfTokensListed: Number
 })
 
+const TokenListing = mongoose.model('tokenListings', tokenListingModel)
+module.exports = TokenListing

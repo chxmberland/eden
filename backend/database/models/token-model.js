@@ -8,4 +8,5 @@ const tokenModel = new mongoose.Schema({
     abi: String
 })
 
-module.exports = mongoose.model("token", tokenModel)
+const Token = mongoose.model("tokens", tokenModel)
+module.exports = Token
