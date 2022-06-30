@@ -1,5 +1,6 @@
 const modelLocation = '../../models'
 const User = require(`${modelLocation}/user-model.js`)
+const Vendor = require(`${modelLocation}/vendor-model.js`)
 
 /* 
     Creating a user in the database.    
@@ -15,7 +16,7 @@ function createUser(walletAddress, username, hash) {
     const newUser = new User({
         walletAddress: walletAddress,
         username: username,
-        userID: "test-id",
+        userID: "test-user-id",
         hash: hash,
         transactionHistory: [],
         holdings: []
@@ -25,7 +26,7 @@ function createUser(walletAddress, username, hash) {
         if (err) {
             console.log(`There was an issue saving the user ${username}\n\n${err}`)
         } else {
-            console.log(`Sucsessfuly saved ${username} to Atlas.`)
+            console.log(`Sucsessfuly saved ${username} (user) to Atlas.`)
         }
     })
 }
@@ -40,6 +41,26 @@ function createUser(walletAddress, username, hash) {
 */
 function createVendor(walletAddress, username, hash) {
 
+    // TODO: Create unique vendor ID
+
+    const newVendor = new Vendor({
+        walletAddresss: walletAddress,
+        username: username,
+        vendorID: "test-vednor-id",
+        hash: hash,
+        locations: [],
+        transactionHistory: [],
+        listings: [],
+        holdings: []
+    })
+
+    newVendor.save(function(err) {
+        if (err) {
+            console.log(`There was an issue saving the vendor ${username}\n\n${err}`)
+        } else {
+            console.log(`Sucsessfuly saved ${username} (vendor) to Atlas.`)
+        }
+    })
 }
 
 
