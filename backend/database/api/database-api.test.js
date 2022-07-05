@@ -3,6 +3,8 @@ const userApi = require('./user/user-api.js')
 
 databaseApi.connectToDatabase(databaseApi.connectionUri, databaseApi.connectionParams)
 
-userApi.createUser("0x830830", "benc", "ogj049045h094h5g04h50gh9409g")
+//userApi.createUser("Asyas wallet", "mother_russia", "asyas hash")
 
-userApi.createVendor("0x2374340", "seller", "oidho09euw9eur09w3ur09u2049ru09")
+userApi.createVendor("test-wallet-address", "test-username", "test-hash")
+
+//userApi.createLocation(["V-62c340617cb2920b82a8bc4d"], "Canada", "Montreal", "Jeanne Mance", "3550", "H2X 3P7")

@@ -56,5 +56,5 @@ async function connectToDatabase(connectionUri, connectionParams) {
 module.exports = {
     connectionUri,
     connectionParams,
-    connectToDatabase
+    connectToDatabase,
 }
