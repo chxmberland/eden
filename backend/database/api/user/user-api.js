@@ -8,51 +8,46 @@ const Location = require(`${modelLocation}/location-model.js`)
  * v1/database/user/create-user
  * Creating a user in the database.    
 */
-function createUser(walletAddress, username, hash) {
+async function createUser(walletAddress, username, hash) {
+    const matchingUsers = await User.find({ username: username })
 
-    // Initializing a new user document
-    const newUser = new User({
-        walletAddress: walletAddress,
-        username: username,
-        userID: "",
-        hash: hash,
-        transactionHistory: [],
-        holdings: []
-    })
+    if (matchingUsers.length != 0) {
+        console.log(`There already exists a user with the username ${username}. The user was not saved to the database.`)
+        return null
+    } else {
+        // Initializing a new user document
+        const newUser = new User({
+            walletAddress: walletAddress,
+            username: username,
+            userID: "",
+            hash: hash,
+            transactionHistory: [],
+            holdings: []
+        })
 
-    // Checking to see if the username exists
-    User.find({ username: username }, function(err, res) {
-        if (res.length > 0) {
-            console.log(`There exists a user with the username ${username} already, so the user was not created.`)
-        } else {
-            // Saving the user document
-            newUser
-                .save()
-                // Getting the saved document to use it's ID
-                // The .save() function can only handle errors with a callback if you use .then()
-                .then(savedDoc => {
-                    addUniqueUserID(savedDoc)
-                })
-                .catch(err => {
-                    console.log(`There was an issue saving User ${username}.\n\n${err}`)
-                })
-        }
-    })
+        //Saving the user document without it's unique user ID
+        const savedUser = await newUser.save()
+
+        //Adding a unique user id based on Mongo's _id and returning it
+        const uniqueUser = await addUniqueUserID(savedUser)
+        console.log(`Sucsessfully saved unique user with userID ${uniqueUser.userID}.`)
+        return uniqueUser
+    }
 }
 
 // Adds a unique ID to a user that has just been saved to the database
-function addUniqueUserID(savedDoc) {
+async function addUniqueUserID(savedDoc) {
     let uniqueID = "U-" + savedDoc._id
 
-    // Adding the unique user ID
-    User.updateOne({ _id: savedDoc._id }, { userID: uniqueID }, function(err, res) {
-        if (err || res.matchedCount == 0) {
-            console.log(`There was an issue adding the unique UserID.\n`)
-            err && console.log(err) // If the error exists, print it
-        } else {
-            console.log(`User saved with unique ID ${uniqueID} sucsessfully.`)
-        }
-    })
+    const filter = { _id: savedDoc._id }
+    const update = { userID: uniqueID }
+    const options = {
+        new: true,
+        upsert: false
+    }
+    
+    // Updating the unique ID and returning the user object
+    return await User.findOneAndUpdate(filter, update, options)
 }
 
 
@@ -61,47 +56,47 @@ function addUniqueUserID(savedDoc) {
  * v1/database/user/create-vendor
  * Creating a vendor in the database.
 */
-function createVendor(walletAddress, username, hash) {
-    const newVendor = new Vendor({
-        walletAddresss: walletAddress,
-        username: username,
-        vendorID: "",
-        hash: hash,
-        locations: [],
-        transactionHistory: [],
-        listings: [],
-        holdings: []
-    })
+async function createVendor(walletAddress, username, hash) {
+    const matchingVendors = await Vendor.find({ username: username })
 
-    Vendor.find({ username: username }, function(err, res) {
-        if (res.length > 0) {
-            console.log(`There exists a vendor with the username ${username} already, so the user was not created.`)
-        } else {
-            newVendor
-                .save()
-                // Getting the saved document to use it's ID
-                // The .save() function can only handle errors with a callback if you use .then() and .catch()
-                .then(savedDoc => {
-                    addUniqueVendorID(savedDoc)
-                })
-                .catch(err => {
-                    console.log(`There was an issue saving Vendor ${username}.\n\n${err}`)
-                })
-        }
-    })
+    if (matchingVendors.length != 0) {
+        console.log(`There already exists a vendor with the username ${username}. The vendor was not saved to the database.`)
+        return null
+    } else {
+        // Initializing a new user document
+        const newVendor = new Vendor({
+            walletAddresss: walletAddress,
+            username: username,
+            vendorID: "",
+            hash: hash,
+            locations: [],
+            transactionHistory: [],
+            listings: [],
+            holdings: []
+        })
+
+        //Saving the user document
+        const savedVendor = await newVendor.save()
+
+        //Adding a unique user id based on Mongo's _id 
+        const uniqueVendor = await addUniqueVendorID(savedVendor)
+        console.log(`Sucsessfully saved unique vendor with userID ${uniqueVendor.vendorID}.`)
+        return uniqueVendor
+    }
 }
 
-function addUniqueVendorID(savedDoc) {
+async function addUniqueVendorID(savedDoc) {
     let uniqueID = "V-" + savedDoc._id
 
-    // Adding the unique user ID
-    Vendor.updateOne({ _id: savedDoc._id }, { vendorID: uniqueID }, function(err, res) {
-        if (err || res.matchedCount == 0) {
-            console.log(`There was an issue adding the unique VendorID.\n\n${err}`)
-        } else {
-            console.log(`Vendor saved with unique ID ${uniqueID} sucsessfully.`)
-        }
-    })
+    const filter = { _id: savedDoc._id }
+    const update = { vendorID: uniqueID }
+    const options = {
+        new: true,
+        upsert: false
+    }
+    
+    // Updating the unique ID and returning the user object
+    return await Vendor.findOneAndUpdate(filter, update, options)
 }
 
 
@@ -110,7 +105,8 @@ function addUniqueVendorID(savedDoc) {
  * v1/database/user/add-vendor-location
  * Adding an additional location document.
 */
-function createLocation(vendorIDs, country, city, street, streetNumber, postalCode) {
+async function createLocation(vendorIDs, country, city, street, streetNumber, postalCode) {
+    // Initializing a new user document
     const newLocation = new Location({
         locationID: "",
         vendorIDs: vendorIDs, // Adding the relevant vendor IDs to the location
@@ -121,45 +117,47 @@ function createLocation(vendorIDs, country, city, street, streetNumber, postalCo
         postalCode: postalCode
     })
 
-    // Saving the location to the database (seperate to the Vendor)
-    newLocation
-        .save()
-        .then(savedDoc => {
-            const uniqueID = createUniqueLocationID(savedDoc) // Creating the unique location ID
-            // Linking the location to each vendor by adding the location ID to the vendor's locations field
-            for (vendorID of vendorIDs) {
-                addLocationToVendor(vendorID, uniqueID)
-            }
-        })
-        .catch(err => {
-            console.log(`There was an issue saving Location at ${country}, ${city}.\n\n${err}`)
-        })
+    //Saving the user document
+    const savedLocation = await newLocation.save()
+
+    // Creating and getting the unique location ID
+    const uniqueLocation = await addUniqueLocationID(savedLocation)
+
+    // Linking the location to each vendor by adding the location ID to the vendor's locations field
+    for (vendorID of vendorIDs) {
+        addLocationToVendor(vendorID, uniqueLocation.locationID)
+    }
+
+    //Returning the location document that was just saved
+    console.log(`Sucsessfully saved location with locationID ${uniqueLocation.locationID}.`)
+    return uniqueLocation
 }
 
-function createUniqueLocationID(savedDoc) {
+async function addUniqueLocationID(savedDoc) {
     let uniqueID = "L-" + savedDoc._id
 
-    // Adding the unique location ID
-    Location.updateOne({ _id: savedDoc._id }, { locationID: uniqueID }, function(err, res) {
-        if (err || !res.length) {
-            console.log(`There was an issue adding the unique LocationID.\n\n${err}`)
-        } else {
-            console.log(`Location saved with unique ID ${uniqueID} sucsessfully.`)
-        }
-    })
-    return uniqueID
+    const filter = { _id: savedDoc._id }
+    const update = { locationID: uniqueID }
+    const options = {
+        new: true,
+        upsert: false
+    }
+    
+    // Updating the unique ID and returning the location object
+    return await Location.findOneAndUpdate(filter, update, options)
 }
 
-function addLocationToVendor(vendorID, locationID) {
-    // Adding the locationID to the Vendor ($addToSet allows you to append to a list)
-    Vendor.updateOne({ vendorID: vendorID }, { $addToSet: { locations: locationID } }, function(err, res) {
-        if (err) {
-            console.log(`There was an issue linking the existing Location ${locationID} to the Vendor ${vendorID}.\n\n${err}`)
-        } else {
-            console.log(`Sucsessfully linked location ${locationID} to vendor ${vendorID}.`)
-        }
-    })
+async function addLocationToVendor(vendorID, locationID) {
+    const filter = { vendorID: vendorID }
+    const update = { $addToSet: { locations: locationID }}
+    const options = {
+        new: false,     // Preventing Mongoose from returning the modified document to save bandwidth
+        upsert: false
+    }
+
+    await Vendor.findOneAndUpdate(filter, update, options)
 }
+
 
 /*
  * [POST]
@@ -167,7 +165,20 @@ function addLocationToVendor(vendorID, locationID) {
  * Adding holdings to a user document.
 */
 function addHoldings(userID, tokenID, amount) {
+    // Create a new holdings document (it is not a data model)
+    const newHoldings = {
+        tokenID: tokenID,
+        amount: amount
+    }
 
+    // Finding the user/vendor to add the holdings too
+    User.updateOne( { userID: userID }, { $addToSet: { holdings: newHoldings } }, function(err, res) {
+        if (err || res.matchedCount == 0) {
+            console.log(`Unable to add token holdings to user ${userID}.`)
+        } else {
+            console.log(`Sucsessfully added ${amount} ${tokenID} to the holdings of user with ID ${userID}`)
+        }
+    })
 }
 
 
@@ -240,5 +251,5 @@ module.exports = {
     updateWalletAddress,
     updateVendorLocation,
     updateHoldings,
-    deleteUser
+    deleteUser,
 }
