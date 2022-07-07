@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const locationModel = new mongoose.Schema({
     locationID: String,
-    vendorIDs: [String],
+    vendorID: String,
     country: String,
     city: String,
     street: String,
