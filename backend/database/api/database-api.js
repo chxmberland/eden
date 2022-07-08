@@ -4,21 +4,11 @@ require('dotenv').config() // Allows accsess to environment variables in .env fi
 // Importing shelled APIs
 const userAPI = require('./user/user-api.js')
 
-//Importing Mongoose data models
-const modelLocation = '../models'
-const AssetListing = require(`${modelLocation}/asset-listing-model.js`)
-const Location = require(`${modelLocation}/location-model.js`)
-const TokenListing = require(`${modelLocation}/token-listing-model.js`)
-const Token = require(`${modelLocation}/token-model.js`)
-const Transaction = require(`${modelLocation}/transaction-model.js`)
-const User = require(`${modelLocation}/user-model.js`)
-const Vendor = require(`${modelLocation}/vendor-model.js`)
-
 const connectionUri = `mongodb+srv://admin:${process.env.DB_AUTH}@atlascluster.wmlg9zu.mongodb.net/?retryWrites=true&w=majority`
 const connectionParams = {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    dbName: "pheasant"
+    dbName: "pheasant-test"
 }
 
 /* Description:
@@ -53,8 +43,13 @@ async function connectToDatabase(connectionUri, connectionParams) {
     return true
 }
 
+function disconnectFromDatabase() {
+    mongoose.disconnect()
+}
+
 module.exports = {
     connectionUri,
     connectionParams,
     connectToDatabase,
+    disconnectFromDatabase
 }

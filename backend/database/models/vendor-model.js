@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const vendorModel = new mongoose.Schema({
-    walletAddresss: String,
+    walletAddress: String,
     username: String,
     vendorID: String,
     hash: String,
@@ -10,7 +10,7 @@ const vendorModel = new mongoose.Schema({
     listings: [String],             // List of listingID's referencing external documents
     holdings: [{
         tokenID: String,
-        amount: Boolean
+        amount: Number
     }]
 })
 

@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const modelLocation = '../../models'
 const User = require(`${modelLocation}/user-model.js`)
 const Vendor = require(`${modelLocation}/vendor-model.js`)
@@ -11,8 +13,8 @@ const Location = require(`${modelLocation}/location-model.js`)
 async function createUser(walletAddress, username, hash) {
     const matchingUsers = await User.find({ username: username })
 
+    // Ensuring that no other user exists with the same username
     if (matchingUsers.length != 0) {
-        console.log(`There already exists a user with the username ${username}. The user was not saved to the database.`)
         return null
     } else {
         // Initializing a new user document
@@ -30,7 +32,7 @@ async function createUser(walletAddress, username, hash) {
 
         //Adding a unique user id based on Mongo's _id and returning it
         const uniqueUser = await addUniqueUserID(savedUser)
-        console.log(`Sucsessfully saved unique user with userID ${uniqueUser.userID}.`)
+        //console.log(`Sucsessfully saved unique user with userID ${uniqueUser.userID}.`)
         return uniqueUser
     }
 }
@@ -59,13 +61,13 @@ async function addUniqueUserID(savedDoc) {
 async function createVendor(walletAddress, username, hash) {
     const matchingVendors = await Vendor.find({ username: username })
 
+    // Ensuring that no other vendor already exists with the same username
     if (matchingVendors.length != 0) {
-        console.log(`There already exists a vendor with the username ${username}. The vendor was not saved to the database.`)
         return null
     } else {
         // Initializing a new user document
         const newVendor = new Vendor({
-            walletAddresss: walletAddress,
+            walletAddress: walletAddress,
             username: username,
             vendorID: "",
             hash: hash,
@@ -80,7 +82,6 @@ async function createVendor(walletAddress, username, hash) {
 
         //Adding a unique user id based on Mongo's _id 
         const uniqueVendor = await addUniqueVendorID(savedVendor)
-        console.log(`Sucsessfully saved unique vendor with userID ${uniqueVendor.vendorID}.`)
         return uniqueVendor
     }
 }
@@ -129,7 +130,6 @@ async function createLocation(vendorIDs, country, city, street, streetNumber, po
     }
 
     //Returning the location document that was just saved
-    console.log(`Sucsessfully saved location with locationID ${uniqueLocation.locationID}.`)
     return uniqueLocation
 }
 
@@ -164,21 +164,26 @@ async function addLocationToVendor(vendorID, locationID) {
  * v1/database/user/add-holdings
  * Adding holdings to a user document.
 */
-function addHoldings(userID, tokenID, amount) {
+async function addHoldings(id, tokenID, amount, type) {
     // Create a new holdings document (it is not a data model)
     const newHoldings = {
         tokenID: tokenID,
         amount: amount
     }
 
-    // Finding the user/vendor to add the holdings too
-    User.updateOne( { userID: userID }, { $addToSet: { holdings: newHoldings } }, function(err, res) {
-        if (err || res.matchedCount == 0) {
-            console.log(`Unable to add token holdings to user ${userID}.`)
-        } else {
-            console.log(`Sucsessfully added ${amount} ${tokenID} to the holdings of user with ID ${userID}`)
-        }
-    })
+    const update = { $addToSet : { holdings: newHoldings } }
+    const options = {
+        new: true,
+        upsert: false
+    }
+
+    if (type == "U") {
+        const filter = { userID: id }
+        return await User.findOneAndUpdate(filter, update, options)
+    } else if (type == "V") {
+        const filter = { vendorID: id }
+        return await Vendor.findOneAndUpdate(filter, update, options)
+    }
 }
 
 
@@ -187,7 +192,7 @@ function addHoldings(userID, tokenID, amount) {
  * v1/database/get-user
  * Gets a user document.
 */
-function getUser(userID) {
+async function getUser(userID) {
 
 }
 
@@ -197,7 +202,7 @@ function getUser(userID) {
  * v1/database/user/update-username
  * Updates the username of a user.
 */
-function updateUsername(userID, newUsername) {
+async function updateUsername(userID, newUsername) {
 
 }
 
@@ -207,7 +212,7 @@ function updateUsername(userID, newUsername) {
  * v1/database/user/update-wallet-address
  * Updates the wallet of a user.
 */
-function updateWalletAddress(userID, newWallet) {
+async function updateWalletAddress(userID, newWallet) {
     
 }
 
@@ -217,7 +222,7 @@ function updateWalletAddress(userID, newWallet) {
  * v1/database/user/update-vendor-location
  * Updates a vendor location.
 */
-function updateVendorLocation(locationID, country, city, street, streetNumber, postalCode) {
+async function updateVendorLocation(locationID, country, city, street, streetNumber, postalCode) {
     
 }
 
@@ -227,7 +232,7 @@ function updateVendorLocation(locationID, country, city, street, streetNumber, p
  * v1/database/user/update-holdings
  * Updates the holdings of a user.
 */
-function updateHoldings(userID, tokenID, amount) {
+async function updateHoldings(userID, tokenID, amount) {
     
 }
 
@@ -237,8 +242,16 @@ function updateHoldings(userID, tokenID, amount) {
  * v1/database/user/delete-user
  * Deletes a user document, and all of it's associated documents.
 */
-function deleteUser(userID) {
+async function deleteUser(userID) {
 
+}
+
+async function flushDatabase(pass) {
+    if (pass == process.env.FLUSH_PASS) {
+        User.deleteMany({}, function(err, res) {})
+        Vendor.deleteMany({}, function(err, res) {})
+        Location.deleteMany({}, function(err, res) {})
+    }
 }
 
 module.exports = {
@@ -252,4 +265,5 @@ module.exports = {
     updateVendorLocation,
     updateHoldings,
     deleteUser,
+    flushDatabase
 }
