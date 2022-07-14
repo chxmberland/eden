@@ -8,7 +8,7 @@ const Location = require(`${modelLocation}/location-model.js`)
 /* 
  * [POST]
  * v1/database/user/create-user
- * Creating a user in the database.    
+ * Creating a user in the database.
 */
 async function createUser(walletAddress, username, hash) {
     const matchingUsers = await User.find({ username: username })
@@ -126,7 +126,7 @@ async function createLocation(vendorIDs, country, city, street, streetNumber, po
 
     // Linking the location to each vendor by adding the location ID to the vendor's locations field
     for (vendorID of vendorIDs) {
-        addLocationToVendor(vendorID, uniqueLocation.locationID)
+        await addLocationToVendor(vendorID, uniqueLocation.locationID)
     }
 
     //Returning the location document that was just saved
@@ -164,7 +164,7 @@ async function addLocationToVendor(vendorID, locationID) {
  * v1/database/user/add-holdings
  * Adding holdings to a user document.
 */
-async function addHoldings(id, tokenID, amount, type) {
+async function addHolding(id, tokenID, amount, type) {
     // Create a new holdings document (it is not a data model)
     const newHoldings = {
         tokenID: tokenID,
@@ -193,7 +193,7 @@ async function addHoldings(id, tokenID, amount, type) {
  * Gets a user document.
 */
 async function getUser(userID) {
-
+    return await User.findOne({ userID: userID })
 }
 
 
@@ -202,8 +202,19 @@ async function getUser(userID) {
  * v1/database/user/update-username
  * Updates the username of a user.
 */
-async function updateUsername(userID, newUsername) {
-
+async function updateUsername(id, newUsername, type) {
+    const options = {
+        new: true,
+        upsert: false
+    }
+    const update = {
+        username: newUsername
+    }
+    if (type == "U") {
+        return await User.findOneAndUpdate( { userID: id }, update, options )
+    } else if (type == "V") {
+        return await Vendor.findOneAndUpdate( { vendorID: id }, update, options )
+    }
 }
 
 
@@ -212,8 +223,20 @@ async function updateUsername(userID, newUsername) {
  * v1/database/user/update-wallet-address
  * Updates the wallet of a user.
 */
-async function updateWalletAddress(userID, newWallet) {
-    
+async function updateWalletAddress(id, newWallet, type) {
+    const options = {
+        new: true,
+        upsert: false
+    }
+    const update = {
+        walletAddress: newWallet
+    }
+
+    if (type == "U") {
+        return await User.findOneAndUpdate( { userID: id }, update, options )
+    } else if (type == "V") {
+        return await Vendor.findOneAndUpdate( { vendorID: id }, update, options )
+    }
 }
 
 
@@ -222,8 +245,24 @@ async function updateWalletAddress(userID, newWallet) {
  * v1/database/user/update-vendor-location
  * Updates a vendor location.
 */
-async function updateVendorLocation(locationID, country, city, street, streetNumber, postalCode) {
-    
+async function updateLocation(locationID, country, city, street, streetNumber, postalCode) {
+    const options = {
+        new: true,
+        upsert: false
+    }
+    const filter = {
+        locationID: locationID
+    }
+    const update = {
+        country: country,
+        city: city,
+        street: street,
+        streetNumber: streetNumber,
+        postalCode: postalCode
+    }
+
+    // Updating the location document
+    return await Location.findOneAndUpdate(filter, update, options)
 }
 
 
@@ -232,8 +271,41 @@ async function updateVendorLocation(locationID, country, city, street, streetNum
  * v1/database/user/update-holdings
  * Updates the holdings of a user.
 */
-async function updateHoldings(userID, tokenID, amount) {
-    
+async function updateHolding(id, tokenID, amount, type) {
+    const options = {
+        new: true,
+        upsert: false
+    }
+
+    // Updating a users holdings
+    if (type == "U") {
+        // Finding the user to get their current holdings
+        const user = await User.findOne({ userID: id })
+
+        // Updating the holdings
+        return await User.findOneAndUpdate( 
+            { userID: id }, 
+            { holdings: insertnewAmountIntoHoldings(user.holdings, tokenID, amount) }, 
+            options
+        )
+    } else if (type == "V") {
+        const vendor = await Vendor.findOne({ vendorID: id })
+        return await Vendor.findOneAndUpdate( 
+            { vendorID: id }, 
+            { holdings: insertnewAmountIntoHoldings(vendor.holdings, tokenID, amount) }, 
+            options
+        )
+    }
+}
+
+function insertnewAmountIntoHoldings(holdings, tokenID, amount) {
+    for (let i = 0; i < holdings.length; i++) {
+        if (holdings[i].tokenID == tokenID) {
+            holdings[i].amount = amount
+            break
+        }
+    }
+    return holdings
 }
 
 
@@ -243,7 +315,35 @@ async function updateHoldings(userID, tokenID, amount) {
  * Deletes a user document, and all of it's associated documents.
 */
 async function deleteUser(userID) {
+    // Finding the document that is going to be deleted
+    return await User.deleteOne({ userID: userID })
+}
 
+/*
+ * [DELETE] 
+ * v1/database/user/delete-vendor
+ * Deletes a vendor document, and all of it's associated documents.
+*/
+async function deleteVendor(vendorID) {
+    // Getting the vendor and the related location IDs
+    const vendor = await Vendor.findOne({ vendorID: vendorID })
+    const vendorLocations = vendor.locations
+
+    const options = {
+        new: true,
+        upsert: false
+    }
+
+    // Removing the vendor ID from each location\
+    for (let i = 0; i < vendorLocations.length; i++) {
+        let location = await Location.findOne({ locationID: vendorLocations[i] })
+        const filteredVendors = location.vendorIDs.filter(vendorID => vendorID != vendor.vendorID)
+        location.vendorIDs = filteredVendors
+        await Location.findOneAndUpdate({ locationID: location.locationID }, { vendorIDs: filteredVendors }, options)
+    }
+
+    // Deleting the vendor
+    return await Vendor.deleteOne({ vendorID: vendorID })
 }
 
 async function flushDatabase(pass) {
@@ -258,12 +358,13 @@ module.exports = {
     createUser,
     createVendor,
     createLocation,
-    addHoldings,
+    addHolding,
     getUser,
     updateUsername,
     updateWalletAddress,
-    updateVendorLocation,
-    updateHoldings,
+    updateLocation,
+    updateHolding,
     deleteUser,
+    deleteVendor,
     flushDatabase
 }

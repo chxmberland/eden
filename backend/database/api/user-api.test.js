@@ -2,7 +2,8 @@ const assert = require('assert')
 const databaseApi = require('./database-api.js')
 const userApi = require('./user/user-api.js')
 
-const Vendor = require(`../models/vendor-model.js`)
+const Vendor = require("../models/vendor-model.js")
+const Location = require("../models/location-model.js")
 
 async function connect() {
     await databaseApi.connectToDatabase(databaseApi.connectionUri, databaseApi.connectionParams)
@@ -234,7 +235,7 @@ async function testAddingVendorToLocation() {
         `testAddingVendorToLocation() [1] failed with bad first vendor ${lr.vendorIDs}`
     )
     
-    // Asserting the location exists in the vendor documents
+    // Asserting the location exists in the vendor documents (need the updated vendors)
     const fv1 = await Vendor.findOne({ vendorID: v1r.vendorID })
     const fv2 = await Vendor.findOne({ vendorID: v2r.vendorID })
     assert(
@@ -250,7 +251,7 @@ async function testAddingVendorToLocation() {
 
 // TESTS: [POST] v1/database/user/add-holdings
 
-async function testAddHoldingsToUser() {
+async function testAddHoldingToUser() {
     const u = {
         walletAddress: "0x5c4444FF22f1b0e195C81b4627B4820cdE2D163a",
         username: "Asya",
@@ -268,8 +269,8 @@ async function testAddHoldingsToUser() {
         amount: 100
     }
 
-    await userApi.addHoldings(ur.userID, h1.tokenID, h1.amount, "U")
-    const nur = await userApi.addHoldings(ur.userID, h2.tokenID, h2.amount, "U")
+    await userApi.addHolding(ur.userID, h1.tokenID, h1.amount, "U")
+    const nur = await userApi.addHolding(ur.userID, h2.tokenID, h2.amount, "U")
 
     assert(
         nur.holdings.length == 2,
@@ -294,7 +295,7 @@ async function testAddHoldingsToUser() {
     console.log("testAddHoldingsToUser() OK")
 }
 
-async function testAddHoldingsToVendor() {
+async function testAddHoldingToVendor() {
     const v = {
         walletAddress: "0xB98Ad8451d20A98f2729A14814d83FC69837c013",
         username: "Marshalls",
@@ -312,8 +313,8 @@ async function testAddHoldingsToVendor() {
         amount: 24
     }
 
-    await userApi.addHoldings(vr.vendorID, h1.tokenID, h1.amount, "V")
-    const nvr = await userApi.addHoldings(vr.vendorID, h2.tokenID, h2.amount, "V")
+    await userApi.addHolding(vr.vendorID, h1.tokenID, h1.amount, "V")
+    const nvr = await userApi.addHolding(vr.vendorID, h2.tokenID, h2.amount, "V")
 
     assert(
         nvr.holdings.length == 2,
@@ -338,37 +339,371 @@ async function testAddHoldingsToVendor() {
     console.log("testAddHoldingsToVendor() OK")
 }
 
+// TESTS: [GET] v1/database/get-user
+
+async function testGetUser() {
+    const u = {
+        walletAddress: "0x0A7d16aF0fEb082288B43F1678BB707650eEe651",
+        username: "RogerOutages",
+        hash: "8F9602AA161E406B7426EDAFC6C17433C21E62C38D6B5A6B5F81862F9F7BE6DB"
+    }
+
+    const ur = await userApi.createUser(u.walletAddress, u.username, u.hash)
+
+    const foundUser = await userApi.getUser(ur.userID)
+
+    assert(
+        foundUser.walletAddress == ur.walletAddress,
+        `testGetUser() [0] failed with bad wallet address ${foundUser.walletAddress}`
+    )
+    assert(
+        foundUser.username == ur.username,
+        `testGetUser() [1] failed with bad usernam ${foundUser.username}`
+    )
+    assert(
+        foundUser.userID == ur.userID,
+        `testGetUser() [2] failed with bad userID ${foundUser.userID}`
+    )
+    assert(
+        foundUser.hash == ur.hash,
+        `testGetUser() [3] failed with bad hash ${foundUser.hash}`
+    )
+    assert(
+        foundUser.transactionHistory.length == ur.transactionHistory.length,
+        `testGetUser() [4] failed with bad transaction history length ${foundUser.transactionHistory.length}`
+    )
+    for (let i = 0; i < foundUser.transactionHistory.length; i++) {
+        assert(
+            foundUser.transactionHistory[i] == ur.transactionHistory[i],
+            `testGetUser() [5] failed with bad transaction history ${foundUser.transactionHistory[i]}`
+        )
+    }
+    assert(
+        foundUser.holdings.length == ur.holdings.length,
+        `testGetUser() [6] failed with bad holdings length ${foundUser.holdings.length}`
+    )
+    for (let i = 0; i < foundUser.holdings.length; i++) {
+        assert(
+            foundUser.holdings[i] == ur.holdings[i],
+            `testGetUser() [7] failed with bad holdings ${foundUser.holdings[i]}`
+        )
+    }
+    console.log("testGetUser() OK")
+}
+
+// TESTS: [PATCH] v1/database/user/update-username
+
+async function testUpdateUsername() {
+    // Testing changing a users username
+    const u = {
+        walletAddress: "0x296770B977d4F2E849078F738f7ac234B2d193AA",
+        username: "superman",
+        hash: "17F29B073143D8CD97B5BBE492BDEFFEC1C5FEE55CC1FE2112C8B9335F8B6121"
+    }
+    let newUsername = "the flash"
+
+    const savedUser = await userApi.createUser(u.walletAddress, u.username, u.hash)
+    const newUser = await userApi.updateUsername(savedUser.userID, newUsername, "U")
+
+    assert(
+        newUser.username == newUsername,
+        `testUpdateUsername() [0] failed with bad user username ${newUser.username}`
+    )
+
+    // Testing changing a vendors username
+    const v = {
+        walletAddres: "0xd52cF2D05Dec9171dB252838a2Eb89025a5BA0e5",
+        username: "green lantern",
+        hash: "2995FF81D719DC2131E0B53AD86CE42D0956CE7B95657E9A20C64F683DEDE795"
+    }
+    newUsername = "black panther"
+    
+    const savedVendor = await userApi.createVendor(v.walletAddress, v.username, v.hash)
+    const newVendor = await userApi.updateUsername(savedVendor.vendorID, newUsername, "V") 
+
+    assert(
+        newVendor.username == newUsername,
+        `testUpdateUsername() [1] failed with bad vendor username ${newVendor.username}`
+    )
+
+    console.log("testUpdateUsername() OK")
+}
+
+// TESTS: [PATCH] v1/database/user/update-wallet-address
+
+async function testUpdateWalletAddress() {
+    // Testing changing a users wallet address
+    const u = {
+        walletAddress: "0x70E32946Cb8894fF9c13b82EAF7456D6E3ef391E",
+        username: "dollarama",
+        hash: "61FF03469452EA67EB58AB5F266222D89160F420FA72C0439F1C7CB59B55763C"
+    }
+    let newWalletAddress = "NEW WALLET ADDRESS"
+
+    const savedUser = await userApi.createUser(u.walletAddress, u.username, u.hash)
+    const newUser = await userApi.updateWalletAddress(savedUser.userID, newWalletAddress, "U")
+
+    assert(
+        newUser.walletAddress == newWalletAddress,
+        `testUpdateWalletAddress() [0] failed with bad user wallet address ${newUser.walletAddress}`
+    )
+
+    // Testing changing a vendors wallet address
+    const v = {
+        walletAddres: "0xe4655c5cf58A3120B38eC3F0f9a7be4D5eF6bAb5",
+        username: "LCBO",
+        hash: "7FE8B22CE93E9CDB3CC71F5FC1672EA030E4641FACB336CFF8C42B67655D6E1D"
+    }
+
+    const savedVendor = await userApi.createVendor(v.walletAddress, v.username, v.hash)
+    const newVendor = await userApi.updateWalletAddress(savedVendor.vendorID, newWalletAddress, "V") 
+
+    assert(
+        newVendor.walletAddress == newWalletAddress,
+        `testUpdateWalletAddress() [1] failed with bad vendor wallet address ${newVendor.walletAddress}`
+    )
+
+    console.log("testUpdateWalletAddress() OK")
+}
+
+async function testUpdateLocation() {
+    const firstLocation = {
+        country: "New Zealand",
+        city: "Auckland",
+        street: "Westchester Crt.",
+        streetNumber: "65",
+        postalCode: "G4F D2H"
+    }
+    const newLocation = {
+        country: "Morrocco",
+        city: "Casablanca",
+        street: "Sashay Ave.",
+        streetNumber: "73",
+        postalCode: "2345"
+    }
+    const savedLocation = await userApi.createLocation([], firstLocation.country, firstLocation.city, firstLocation.street, firstLocation.streetNumber, firstLocation.postalCode)
+    const updatedLocation = await userApi.updateLocation(savedLocation.locationID, newLocation.country, newLocation.city, newLocation.street, newLocation.streetNumber, newLocation.postalCode)
+
+    assert(
+        updatedLocation.country == newLocation.country,
+        `testUpdateVendorLocation() [0] failed with country ${updatedLocation.country}`
+    )
+    assert(
+        updatedLocation.city == newLocation.city,
+        `testUpdateVendorLocation() [1] failed with city ${updatedLocation.city}`
+    )
+    assert(
+        updatedLocation.street == newLocation.street,
+        `testUpdateVendorLocation() [2] failed with street ${updatedLocation.street}`
+    )
+    assert(
+        updatedLocation.streetNumber == newLocation.streetNumber,
+        `testUpdateVendorLocation() [3] failed with street number ${updatedLocation.streetNumber}`
+    )
+    assert(
+        updatedLocation.postalCode == newLocation.postalCode,
+        `testUpdateVendorLocation() [4] failed with postal code ${updatedLocation.postalCode}`
+    )
+
+    console.log("testUpdateVendorLocation() OK")
+}
+
+async function testUpdateHoldings() {
+    // Creating a user and some mock holdings
+    const user = {
+        walletAddress: "0x4C97BfC355338968c9446A610e8d05Ed43dD152C",
+        username: "Jeanne Mance",
+        hash: "750E4AE9942ACD739ADCD6C44E7135125C01D57FE24013D0B9E4B021C914FD06"
+    }
+    const token = {
+        tokenID: "T-TEST",
+        amount: 100
+    }
+    const updatedAmount = 200
+
+    // Saving the user and tokens to the database
+    const createdUser = await userApi.createUser(user.walletAddress, user.username, user.hash)
+    const userWithHoldings = await userApi.addHolding(createdUser.userID, token.tokenID, token.amount, "U")
+
+    // Updating the holdings
+    const updatedUserWithHoldings = await userApi.updateHolding(userWithHoldings.userID, token.tokenID, updatedAmount, "U")
+
+    // Checking to see if the update worked
+    assert(
+        updatedUserWithHoldings.holdings[0].tokenID == token.tokenID,
+        `testUpdateHoldings() [0] failed with bad tokenID ${updatedUserWithHoldings.holdings[0].tokenID}`
+    )
+    assert(
+        updatedUserWithHoldings.holdings[0].amount == updatedAmount,
+        `testUpdateHoldings() [1] failed with bad amount ${updatedUserWithHoldings.holdings[0].amount}`
+    )
+
+    // Creating a vendor and some mock holdings
+    const vendor = {
+        walletAddress: "0x4C97BfC355338968c9446A610e8d05Ed43dD152C",
+        username: "Jeanne Mance",
+        hash: "750E4AE9942ACD739ADCD6C44E7135125C01D57FE24013D0B9E4B021C914FD06"
+    } 
+
+    // Saving the vendor and tokens to the database
+    const createdVendor = await userApi.createVendor(vendor.walletAddress, vendor.username, vendor.hash)
+    const vendorWithHoldings = await userApi.addHolding(createdVendor.vendorID, token.tokenID, token.amount, "V")
+
+    // Updating the holdings
+    const updatedVendorWithHoldings = await userApi.updateHolding(vendorWithHoldings.vendorID, token.tokenID, updatedAmount, "V")
+
+    assert(
+        updatedVendorWithHoldings.holdings[0].tokenID == token.tokenID,
+        `testUpdateHoldings() [2] failed with bad tokenID ${updatedVendorWithHoldings.holdings[0].tokenID}`
+    )
+    assert(
+        updatedVendorWithHoldings.holdings[0].amount == updatedAmount,
+        `testUpdateHoldings() [3] failed with bad amount ${updatedVendorWithHoldings.holdings[0].amount}`
+    )
+
+    console.log("testUpdateHoldings() OK")
+}
+
+async function testDeleteUser() {
+    // Creating the user and saving it to the database
+    const user ={
+        walletAddress: "0xFD3a9d5a0A5d7dbA53e46801CB87ec3E894a0464",
+        username: "Jackson",
+        hash: "E797C0013811A1D1E35AD7EDD10FB99986DB664B0996C76ED9AE5E0A5151BBF9"
+    }
+    const savedUser = await userApi.createUser(user.walletAddress, user.username, user.hash)
+
+    // Deleting the user
+    const res = await userApi.deleteUser(savedUser.userID)
+
+    // Asserting the user was deleted
+    assert(
+        res.acknowledged == true,
+        `testDeleteUser() [0] failed with an aknowledgment of ${res.acknowledged} (should be true)`
+    )
+    assert(
+        res.deletedCount == 1,
+        `testDeleteUser() [1] failed with the number of deleted documents being ${res.deletedCount} (should be 1)`
+    )
+    console.log("testDeleteUser() OK")
+}
+
+async function testDeleteVendor() {
+    // Creating a vendor
+    const vendor = {
+        walletAddress: "0xa6A0BA28B03f2099eb14dd49CF9616B264ff9653",
+        username: "Winners",
+        hash: "8761E99B70755115286A856207A46E7BA10FAFD3324ABA86838A8F9ECD2579D3"
+    }
+    const savedVendor = await userApi.createVendor(vendor.walletAddress, vendor.username, vendor.hash)
+
+    // Creating some mock locations
+    const torontoLocation = {
+        country: "Canada",
+        city: "Toronto",
+        street: "King St.",
+        streetNumber: "400",
+        postalCode: "N2D 4T6"
+    }
+    const ottawaLocation = {
+        country: "Canada",
+        city: "Ottawa",
+        street: "Parliment Ct.",
+        streetNumber: "12",
+        postalCode: "T6Y 7U8"
+    }
+
+    savedTorontoLocation = await userApi.createLocation([savedVendor.vendorID], torontoLocation.country, torontoLocation.city, torontoLocation.street, torontoLocation.streetNumber, torontoLocation.postalCode)
+    savedOttawaLocation = await userApi.createLocation([savedVendor.vendorID], ottawaLocation.country, ottawaLocation.city, ottawaLocation.street, ottawaLocation.streetNumber, ottawaLocation.postalCode)
+
+    // Asserting the vendorID exists in both locations
+    assert(
+        savedTorontoLocation.vendorIDs[0] == savedVendor.vendorID,
+        `testDeleteVendor() [0] failed with bad vendorID on location ${savedTorontoLocation.vendorIDs[0]}`    
+    )
+    assert(
+        savedOttawaLocation.vendorIDs[0] == savedVendor.vendorID,
+        `testDeleteVendor() [1] failed with bad vendorID on location ${savedOttawaLocation.vendorIDs[0]}`    
+    )
+
+    // Deleting the vendor
+    const res = await userApi.deleteVendor(savedVendor.vendorID)
+
+    // Asserting the vendor was deleted
+    assert(
+        res.acknowledged == true,
+        `testDeleteVendor() [2] failed with an aknowledgment of ${res.acknowledged} (should be true)`
+    )
+    assert(
+        res.deletedCount == 1,
+        `testDeleteVendor() [3] failed with the number of deleted documents being ${res.deletedCount} (should be 1)`
+    )
+
+    // Asserting the vendorID has been removed from each location
+    const newTorontoLocation = await Location.findOne({ locationID: savedTorontoLocation.locationID })
+    const newOttawaLocation = await Location.findOne({ locationID: savedOttawaLocation.locationID })
+
+    assert(
+        newTorontoLocation.vendorIDs.length == 0,
+        `testDeleteVendor() [4] failed: The vendorID was not deleted from the Toronto location ${newTorontoLocation.vendorIDs}`
+    )
+    assert(
+        newOttawaLocation.vendorIDs.length == 0,
+        `testDeleteVendor() [5] failed: The vendorID was not deleted from the Ottawa location ${newOttawaLocation.vendorIDs}`
+    )
+
+    console.log("testDeleteVendor() OK")
+}
+
 // TESTING: General functionality
 
 async function testUserApi(flushDb) {
     await userApi.flushDatabase(process.env.FLUSH_PASS)
-    try {
-        // TESTING: [POST] v1/database/user/create-user
-        console.log("----------TESTING v1/database/user/create-user---------\n")
-        await testCreateUser()
-        await testUniqueUserID()
-        await testUniqueUserUsername()
+    // TESTING: [POST] v1/database/user/create-user
+    console.log("----------TESTING v1/database/user/create-user---------\n")
+    await testCreateUser()
+    await testUniqueUserID()
+    await testUniqueUserUsername()
 
-        // TESTING: [POST] v1/database/user/create-vendor
-        console.log("\n--------TESTING v1/database/user/create-vendor--------\n")
-        await testCreateVendor()
-        await testUniqueVendorID()
-        await testUniqueVendorUsername()
+    // TESTING: [POST] v1/database/user/create-vendor
+    console.log("\n--------TESTING v1/database/user/create-vendor--------\n")
+    await testCreateVendor()
+    await testUniqueVendorID()
+    await testUniqueVendorUsername()
 
-        // TESTING: [POST] v1/database/user/create-location
-        console.log("\n-------TESTING v1/database/user/create-location-------\n")
-        await testCreateLocation()
-        await testAddingVendorToLocation()
+    // TESTING: [POST] v1/database/user/create-location
+    console.log("\n-------TESTING v1/database/user/create-location-------\n")
+    await testCreateLocation()
+    await testAddingVendorToLocation()
 
-        // TESTING: [POST] v1/database/user/add-location
-        console.log("\n-------TESTING v1/database/user/create-location-------\n")
-        await testAddHoldingsToUser()
-        await testAddHoldingsToVendor()
+    // TESTING: [POST] v1/database/user/add-location
+    console.log("\n-------TESTING v1/database/user/create-location-------\n")
+    await testAddHoldingToUser()
+    await testAddHoldingToVendor()
 
-        console.log("\n-------------------ALL TESTS PASSED-------------------\n")
-    } catch (err) {
-        console.log(`\n${err}`)
-    }
+    // TESTING: [GET] v1/database/user/get-user
+    console.log("\n----------TESTING v1/database/user/get-user-----------\n")
+    await testGetUser()
+
+    // TESTING: [PATCH] v1/database/user/update-username
+    console.log("\n-------TESTING v1/database/user/update-username-------\n")
+    await testUpdateUsername()
+
+    console.log("\n----TESTING v1/database/user/update-wallet-address----\n")
+    await testUpdateWalletAddress()
+
+    console.log("\n-------TESTING v1/database/user/update-location-------\n")
+    await testUpdateLocation()
+
+    console.log("\n-------TESTING v1/database/user/update-holdings-------\n")
+    await testUpdateHoldings()
+
+    console.log("\n-----TESTING v1/database/user/delete-user:vendor------\n")
+    await testDeleteUser()
+    await testDeleteVendor()
+
+    console.log("\n-------------------ALL TESTS PASSED-------------------\n")
+
     flushDb && userApi.flushDatabase(process.env.FLUSH_PASS)
 }
 
