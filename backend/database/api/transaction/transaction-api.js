@@ -146,7 +146,7 @@ async function ensureFunds(id, tokenID, amount) {
 async function updateUserHoldings(userID, tokenID, amount) {
     // Finding the user
     const filter = { userID: userID }
-    const projection = "holdings"
+    const projection = "holdings userID"
     const user = await User.findOne(filter, projection)
 
     // Updating the holdings
@@ -184,9 +184,9 @@ async function updateUserHoldings(userID, tokenID, amount) {
  * The updated vendor document.
 */
 async function updateVendorHoldings(vendorID, tokenID, amount) {
-    // Finding the vendor
+    // Finding the vendor and returning their vendorID and holdings 
     const filter = { vendorID: vendorID }
-    const projection = "holdings"
+    const projection = "holdings vendorID"
     const vendor = await Vendor.findOne(filter, projection)
 
     // Updating the holdings

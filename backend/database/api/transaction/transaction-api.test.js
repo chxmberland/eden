@@ -103,12 +103,11 @@ async function testUpdateUserHoldings() {
 }
 
 async function testUpdateVendorHoldings() {
-
     // Creating the a user
     const vendor = await userApi.createVendor(mockVendor.walletAddress, mockVendor.username, mockVendor.hash)
 
     // Adding NEW holdings to the user
-    let updatedVendor = await transactionApi.updateUserHoldings(user.userID, mockVendor.holdings[0].tokenID, mockVendor.holdings[0].amount)
+    let updatedVendor = await transactionApi.updateVendorHoldings(vendor.vendorID, mockVendor.holdings[0].tokenID, mockVendor.holdings[0].amount)
 
     // Asserting that the holdings were added to the user
     assert(
@@ -122,7 +121,7 @@ async function testUpdateVendorHoldings() {
 
     // Updating existing holdings
     const updateAmount = -50
-    updatedVendor = await transactionApi.updateVendiorHoldings(vendor.userID, mockVendor.holdings[0].tokenID, updateAmount)
+    updatedVendor = await transactionApi.updateVendorHoldings(vendor.vendorID, mockVendor.holdings[0].tokenID, updateAmount)
     
     // Asserting that the existing holdings were updated
     assert(
@@ -172,7 +171,7 @@ async function testCreateTransaction() {
     )
 
     // Testing getTransaction
-    const foundTransaction = await transactionApi.getTransaction(savedTransaction.transacionID)
+    const foundTransaction = await transactionApi.getTransaction(savedTransaction.transactionID)
 
     assert(
         foundTransaction.transactionID == `TR-${savedTransaction._id}`,
@@ -264,10 +263,10 @@ async function testGetHoldings() {
     )
 
     // Adding the holdings
-    const userWithHoldings = await transactionApi.updateUserHoldings(user.userID, mockUser.holdings0[0].tokenID, mockUser.holdings[0].amount)
+    const userWithHoldings = await transactionApi.updateUserHoldings(user.userID, mockUser.holdings[0].tokenID, mockUser.holdings[0].amount)
 
     // Testing getHoldings()
-    const holdings = transactionApi.getHoldings(user.userApi)
+    const holdings = await transactionApi.getHoldings(user.userID)
 
     // Asserting the function got the holdings and userID
     assert(
@@ -275,10 +274,14 @@ async function testGetHoldings() {
         `testGetHoldings() [0] failed: The userID is incorrect with  ${holdings.userID}`
     )
     assert(
-        holdings.holdings[0] == mockUser.holdings[0],
-        `testGetHoldings() [0] failed: The holdings that were returned are incorrect. Got ${holdings.holdings[0]} and expected ${mockUser.holdings[0]}`
+        holdings.holdings[0].tokenID == mockUser.holdings[0].tokenID,
+        `testGetHoldings() [1] failed: The holdings that were returned have an incorrect tokenID. Got ${holdings.holdings[0].tokenID} and expected ${mockUser.holdings[0].tokenID}`
     )
-
+    assert(
+        holdings.holdings[0].amount == mockUser.holdings[0].amount,
+        `testGetHoldings() [2] failed: The holdings that were returned have an incorrect amount. Got ${holdings.holdings[0].amount} and expected ${mockUser.holdings[0].amount}`
+    )
+    console.log("\n\t\ttestGetHoldings() OK")
 }
 
 async function testTransactionApi() {
@@ -289,7 +292,7 @@ async function testTransactionApi() {
     await userApi.flushDatabase(process.env.FLUSH_PASS)
 
     console.log("\n-> Testing updateVendorHoldings()")
-    await testUpdateUserHoldings()
+    await testUpdateVendorHoldings()
     await userApi.flushDatabase(process.env.FLUSH_PASS)
 
     console.log("\n-> Testing createTransaction()")
