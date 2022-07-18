@@ -212,6 +212,13 @@ async function getVendor(vendorID) {
  * Updates the username of a user.
 */
 async function updateUsername(id, newUsername, type) {
+    // Ensuring the username is unique
+    const matchingUsers = (type == "U" ? await User.find({ username: newUsername }) : await Vendor.find({ username: newUsername }))
+    if (matchingUsers.length != 0) {
+        return null
+    } 
+
+    // Updating the username
     const options = {
         new: true,
         upsert: false

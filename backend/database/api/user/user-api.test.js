@@ -659,52 +659,57 @@ async function testDeleteVendor() {
 
 async function testUserApi(flushDb) {
     await userApi.flushDatabase(process.env.FLUSH_PASS)
-    // TESTING: [POST] v1/database/user/create-user
-    console.log("----------TESTING v1/database/user/create-user---------\n")
-    await testCreateUser()
-    await testUniqueUserID()
-    await testUniqueUserUsername()
 
-    // TESTING: [POST] v1/database/user/create-vendor
-    console.log("\n--------TESTING v1/database/user/create-vendor--------\n")
-    await testCreateVendor()
-    await testUniqueVendorID()
-    await testUniqueVendorUsername()
+    try {
+        // TESTING: [POST] v1/database/user/create-user
+        console.log("----------TESTING v1/database/user/create-user---------\n")
+        await testCreateUser()
+        await testUniqueUserID()
+        await testUniqueUserUsername()
 
-    // TESTING: [POST] v1/database/user/create-location
-    console.log("\n-------TESTING v1/database/user/create-location-------\n")
-    await testCreateLocation()
-    await testAddingVendorToLocation()
+        // TESTING: [POST] v1/database/user/create-vendor
+        console.log("\n--------TESTING v1/database/user/create-vendor--------\n")
+        await testCreateVendor()
+        await testUniqueVendorID()
+        await testUniqueVendorUsername()
 
-    // TESTING: [POST] v1/database/user/add-location
-    console.log("\n-------TESTING v1/database/user/create-location-------\n")
-    await testAddHoldingToUser()
-    await testAddHoldingToVendor()
+        // TESTING: [POST] v1/database/user/create-location
+        console.log("\n-------TESTING v1/database/user/create-location-------\n")
+        await testCreateLocation()
+        await testAddingVendorToLocation()
 
-    // TESTING: [GET] v1/database/user/get-user
-    console.log("\n----------TESTING v1/database/user/get-user-----------\n")
-    await testGetUser()
+        // TESTING: [POST] v1/database/user/add-location
+        console.log("\n-------TESTING v1/database/user/create-location-------\n")
+        await testAddHoldingToUser()
+        await testAddHoldingToVendor()
 
-    // TESTING: [PATCH] v1/database/user/update-username
-    console.log("\n-------TESTING v1/database/user/update-username-------\n")
-    await testUpdateUsername()
+        // TESTING: [GET] v1/database/user/get-user
+        console.log("\n----------TESTING v1/database/user/get-user-----------\n")
+        await testGetUser()
 
-    console.log("\n----TESTING v1/database/user/update-wallet-address----\n")
-    await testUpdateWalletAddress()
+        // TESTING: [PATCH] v1/database/user/update-username
+        console.log("\n-------TESTING v1/database/user/update-username-------\n")
+        await testUpdateUsername()
 
-    console.log("\n-------TESTING v1/database/user/update-location-------\n")
-    await testUpdateLocation()
+        console.log("\n----TESTING v1/database/user/update-wallet-address----\n")
+        await testUpdateWalletAddress()
 
-    console.log("\n-------TESTING v1/database/user/update-holdings-------\n")
-    await testUpdateHoldings()
+        console.log("\n-------TESTING v1/database/user/update-location-------\n")
+        await testUpdateLocation()
 
-    console.log("\n-----TESTING v1/database/user/delete-user:vendor------\n")
-    await testDeleteUser()
-    await testDeleteVendor()
+        console.log("\n-------TESTING v1/database/user/update-holdings-------\n")
+        await testUpdateHoldings()
 
-    console.log("\n-------------------ALL TESTS PASSED-------------------\n")
+        console.log("\n-----TESTING v1/database/user/delete-user:vendor------\n")
+        await testDeleteUser()
+        await testDeleteVendor()
 
-    flushDb && userApi.flushDatabase(process.env.FLUSH_PASS)
+        console.log("\n-------------------ALL TESTS PASSED-------------------\n")
+    } catch (err) {
+        console.log(err)
+    }
+
+    flushDb && await userApi.flushDatabase(process.env.FLUSH_PASS)
 }
 
 connect()
