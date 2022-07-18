@@ -1,8 +1,14 @@
 const mongoose = require('mongoose')
 require('dotenv').config() // Allows accsess to environment variables in .env file
 
-// Importing shelled APIs
+// Importing APIs
 const userAPI = require('./user/user-api.js')
+
+// Importing models
+const User = require('../models/user-model.js')
+const Vendor = require('../models/vendor-model.js')
+const Location = require('../models/location-model.js')
+const Transaction = require('../models/transaction-model.js')
 
 const connectionUri = `mongodb+srv://admin:${process.env.DB_AUTH}@atlascluster.wmlg9zu.mongodb.net/?retryWrites=true&w=majority`
 const connectionParams = {
@@ -43,13 +49,18 @@ async function connectToDatabase(connectionUri, connectionParams) {
     return true
 }
 
-function disconnectFromDatabase() {
-    mongoose.disconnect()
+async function flushDatabase(pass) {
+    if (pass == process.env.FLUSH_PASS) {
+        const userRes = await User.deleteMany({})
+        const vendorRes = await Vendor.deleteMany({})
+        const locationRes = await Location.deleteMany({})
+        const transactionRes = await Transaction.deleteMany({})
+    }
 }
 
 module.exports = {
     connectionUri,
     connectionParams,
     connectToDatabase,
-    disconnectFromDatabase
+    flushDatabase
 }
