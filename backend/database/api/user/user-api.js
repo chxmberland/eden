@@ -196,6 +196,15 @@ async function getUser(userID) {
     return await User.findOne({ userID: userID })
 }
 
+/*
+ * [GET]
+ * v1/database/get-vendor
+ * Gets a user document.
+*/
+async function getVendor(vendorID) {
+    return await Vendor.findOne({ vendorID: vendorID })
+}
+
 
 /*
  * [PATCH]
@@ -360,6 +369,7 @@ module.exports = {
     createLocation,
     addHolding,
     getUser,
+    getVendor,
     updateUsername,
     updateWalletAddress,
     updateLocation,
