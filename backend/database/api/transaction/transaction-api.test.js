@@ -285,23 +285,23 @@ async function testGetHoldings() {
 }
 
 async function testTransactionApi() {
-    await userApi.flushDatabase(process.env.FLUSH_PASS)
+    await databaseApi.flushDatabase(process.env.FLUSH_PASS)
 
     console.log("-> Testing updateUserHoldings()")
     await testUpdateUserHoldings()
-    await userApi.flushDatabase(process.env.FLUSH_PASS)
+    await databaseApi.flushDatabase(process.env.FLUSH_PASS)
 
     console.log("\n-> Testing updateVendorHoldings()")
     await testUpdateVendorHoldings()
-    await userApi.flushDatabase(process.env.FLUSH_PASS)
+    await databaseApi.flushDatabase(process.env.FLUSH_PASS)
 
     console.log("\n-> Testing createTransaction()")
     await testCreateTransaction()
-    await userApi.flushDatabase(process.env.FLUSH_PASS)
+    await databaseApi.flushDatabase(process.env.FLUSH_PASS)
 
     console.log("\n-> Testing testGetHoldings()")
     await testGetHoldings()
-    await userApi.flushDatabase(process.env.FLUSH_PASS)
+    await databaseApi.flushDatabase(process.env.FLUSH_PASS)
 }
 
 connect()

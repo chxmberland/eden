@@ -658,7 +658,7 @@ async function testDeleteVendor() {
 // TESTING: General functionality
 
 async function testUserApi(flushDb) {
-    await userApi.flushDatabase(process.env.FLUSH_PASS)
+    await databaseApi.flushDatabase(process.env.FLUSH_PASS)
 
     try {
         // TESTING: [POST] v1/database/user/create-user
@@ -709,7 +709,7 @@ async function testUserApi(flushDb) {
         console.log(err)
     }
 
-    flushDb && await userApi.flushDatabase(process.env.FLUSH_PASS)
+    flushDb && await databaseApi.flushDatabase(process.env.FLUSH_PASS)
 }
 
 connect()

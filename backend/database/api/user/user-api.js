@@ -362,14 +362,6 @@ async function deleteVendor(vendorID) {
     return await Vendor.deleteOne({ vendorID: vendorID })
 }
 
-async function flushDatabase(pass) {
-    if (pass == process.env.FLUSH_PASS) {
-        User.deleteMany({}, function(err, res) {})
-        Vendor.deleteMany({}, function(err, res) {})
-        Location.deleteMany({}, function(err, res) {})
-    }
-}
-
 module.exports = {
     createUser,
     createVendor,
@@ -383,5 +375,4 @@ module.exports = {
     updateHolding,
     deleteUser,
     deleteVendor,
-    flushDatabase
 }
