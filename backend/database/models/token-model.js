@@ -5,6 +5,7 @@ const tokenModel = new mongoose.Schema({
     contractAddress: String,
     tokenName: String,
     tokenSupply: Number,
+    pricePerTokenInUSD: Number, // NEW
     abi: String
 })
 
