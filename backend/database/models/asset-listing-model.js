@@ -2,13 +2,14 @@ const mongoose = require('mongoose')
 
 const assetListingModel = new mongoose.Schema({
     assetID: String,
+    tokenID: String,
     vendorID: String,
     info: {
         assetName: String,
         description: String
     },
-    tokenID: String,        // Referencing an external document
-    tokensSold: Number,
+    numberOfTokensListed: Number,
+    numberOfTokensSold: Number,
     assetPrice: Number
 })
 
