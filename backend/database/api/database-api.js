@@ -37,13 +37,13 @@ async function connectToDatabase(connectionUri, connectionParams) {
     })
 
     // Listening for unexcpected disconnections
-    mongoose.connection.on('disconnected', () => {
-        console.log(`The mongoose driver has been disconnected from the database.\n\n${msg}`)
+    mongoose.connection.on('disconnected', (msg) => {
+        //console.log(`The mongoose driver has been disconnected from the database.`)
     })
 
     // Listening for reconnections if a disconnect has occured
-    mongoose.connection.on('reconnected', () => {
-        console.log(`Mongoose has sucsessfully reconnected to the database\n\n${msg}`)
+    mongoose.connection.on('reconnected', (msg) => {
+        console.log(`Mongoose has sucsessfully reconnected to the database.`)
     })
 
     return true

@@ -3,6 +3,7 @@ const assert = require('assert')
 const transactionApi = require('./transaction-api.js')
 const databaseApi = require('../database-api.js')
 const userApi = require('../user/user-api.js')
+const { default: mongoose } = require('mongoose')
 
 const modelLocation = '../../models'
 const Transaction = require(`${modelLocation}/transaction-model.js`)
@@ -302,6 +303,9 @@ async function testTransactionApi() {
     console.log("\n-> Testing testGetHoldings()")
     await testGetHoldings()
     await databaseApi.flushDatabase(process.env.FLUSH_PASS)
+
+    console.log("\nAll tests passed.\n")
+    await mongoose.connection.close()
 }
 
 connect()
