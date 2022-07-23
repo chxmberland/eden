@@ -7,8 +7,7 @@ const tokenApi = require("./token-api.js")
 const databaseApi = require("../database-api.js")
 
 // Creating a mock token
-mockToken = {
-    tokenID: "",
+const mockToken = {
     contractAddress: "test-contract-address",
     tokenName: "Bitcoin",
     tokenSupply: 10000,

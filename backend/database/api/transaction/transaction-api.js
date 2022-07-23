@@ -80,7 +80,7 @@ async function createTransaction(buyerID, vendorID, tokenID, tokensPurchased, tr
     const updatedBuyerHoldings = buyerIsUser ? await updateUserHoldings(buyerID, tokenID, tokensPurchased) : await updateVendorHoldings(buyerID, tokeID, tokensPurchased)
 
     // Updating the holdings of the vendor
-    const updatedVendorHoldings = updateVendorHoldings(vendorID, tokenID, (tokensPurchased * -1))
+    const updatedVendorHoldings = await updateVendorHoldings(vendorID, tokenID, (tokensPurchased * -1))
 
     return updatedTransaction
 }
@@ -158,7 +158,7 @@ async function updateUserHoldings(userID, tokenID, amount) {
         new: true,
         upsert: false
     }
-    return User.findOneAndUpdate(filter, update, options)
+    return await User.findOneAndUpdate(filter, update, options)
 }
 
 
