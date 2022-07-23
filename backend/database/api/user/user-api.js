@@ -31,9 +31,7 @@ async function createUser(walletAddress, username, hash) {
         const savedUser = await newUser.save()
 
         //Adding a unique user id based on Mongo's _id and returning it
-        const uniqueUser = await addUniqueUserID(savedUser)
-        //console.log(`Sucsessfully saved unique user with userID ${uniqueUser.userID}.`)
-        return uniqueUser
+        return await addUniqueUserID(savedUser)
     }
 }
 
@@ -211,7 +209,10 @@ async function getVendor(vendorID) {
  * v1/database/user/update-username
  * Updates the username of a user.
 */
-async function updateUsername(id, newUsername, type) {
+async function updateUsername(id, newUsername) {
+    // Getting the document type
+    const type = id.charAt(0)
+
     // Ensuring the username is unique
     const matchingUsers = (type == "U" ? await User.find({ username: newUsername }) : await Vendor.find({ username: newUsername }))
     if (matchingUsers.length != 0) {
@@ -239,7 +240,9 @@ async function updateUsername(id, newUsername, type) {
  * v1/database/user/update-wallet-address
  * Updates the wallet of a user.
 */
-async function updateWalletAddress(id, newWallet, type) {
+async function updateWalletAddress(id, newWallet) {
+    const type = id.charAt(0)
+
     const options = {
         new: true,
         upsert: false
@@ -247,12 +250,7 @@ async function updateWalletAddress(id, newWallet, type) {
     const update = {
         walletAddress: newWallet
     }
-
-    if (type == "U") {
-        return await User.findOneAndUpdate( { userID: id }, update, options )
-    } else if (type == "V") {
-        return await Vendor.findOneAndUpdate( { vendorID: id }, update, options )
-    }
+    return type == "U" ? await User.findOneAndUpdate( { userID: id }, update, options) : await Vendor.findOneAndUpdate( { vendorID: id }, update, options)
 }
 
 
@@ -350,7 +348,7 @@ async function deleteVendor(vendorID) {
         upsert: false
     }
 
-    // Removing the vendor ID from each location\
+    // Removing the vendor ID from each location
     for (let i = 0; i < vendorLocations.length; i++) {
         let location = await Location.findOne({ locationID: vendorLocations[i] })
         const filteredVendors = location.vendorIDs.filter(vendorID => vendorID != vendor.vendorID)
