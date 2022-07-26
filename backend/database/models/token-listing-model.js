@@ -2,8 +2,9 @@ const mongoose = require('mongoose')
 
 const tokenListingModel = new mongoose.Schema({
     tokenListingID: String,
-    sourceAssetID: String,
-    userID: String,
+    tokenID: String,
+    sourceAssetListingID: String,
+    listeeID: String,
     numberOfTokensListed: Number,
     numberOfTokensSold: Number
 })
