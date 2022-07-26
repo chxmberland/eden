@@ -9,6 +9,7 @@ const User = require('../models/user-model.js')
 const Vendor = require('../models/vendor-model.js')
 const Location = require('../models/location-model.js')
 const Transaction = require('../models/transaction-model.js')
+const Token = require('../models/token-model.js')
 
 const connectionUri = `mongodb+srv://admin:${process.env.DB_AUTH}@atlascluster.wmlg9zu.mongodb.net/?retryWrites=true&w=majority`
 const connectionParams = {
@@ -55,6 +56,7 @@ async function flushDatabase(pass) {
         const vendorRes = await Vendor.deleteMany({})
         const locationRes = await Location.deleteMany({})
         const transactionRes = await Transaction.deleteMany({})
+        const tokenRes = await Token.deleteMany({})
     }
 }
 
