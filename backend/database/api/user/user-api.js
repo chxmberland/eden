@@ -163,35 +163,6 @@ async function addLocationToVendor(vendorID, locationID) {
     await Vendor.findOneAndUpdate(filter, update, options)
 }
 
-
-/*
- * [POST]
- * v1/database/user/add-holdings
- * Adding holdings to a user document.
-*/
-async function addHolding(id, tokenID, amount, type) {
-    // Create a new holdings document (it is not a data model)
-    const newHoldings = {
-        tokenID: tokenID,
-        amount: amount
-    }
-
-    const update = { $addToSet : { holdings: newHoldings } }
-    const options = {
-        new: true,
-        upsert: false
-    }
-
-    if (type == "U") {
-        const filter = { userID: id }
-        return await User.findOneAndUpdate(filter, update, options)
-    } else if (type == "V") {
-        const filter = { vendorID: id }
-        return await Vendor.findOneAndUpdate(filter, update, options)
-    }
-}
-
-
 /*
  * [GET]
  * v1/database/get-user
@@ -286,50 +257,6 @@ async function updateLocation(locationID, country, city, street, streetNumber, p
     return await Location.findOneAndUpdate(filter, update, options)
 }
 
-
-/*
- * [PATCH]
- * v1/database/user/update-holdings
- * Updates the holdings of a user.
-*/
-async function updateHolding(id, tokenID, amount, type) {
-    const options = {
-        new: true,
-        upsert: false
-    }
-
-    // Updating a users holdings
-    if (type == "U") {
-        // Finding the user to get their current holdings
-        const user = await User.findOne({ userID: id })
-
-        // Updating the holdings
-        return await User.findOneAndUpdate( 
-            { userID: id }, 
-            { holdings: insertnewAmountIntoHoldings(user.holdings, tokenID, amount) }, 
-            options
-        )
-    } else if (type == "V") {
-        const vendor = await Vendor.findOne({ vendorID: id })
-        return await Vendor.findOneAndUpdate( 
-            { vendorID: id }, 
-            { holdings: insertnewAmountIntoHoldings(vendor.holdings, tokenID, amount) }, 
-            options
-        )
-    }
-}
-
-function insertnewAmountIntoHoldings(holdings, tokenID, amount) {
-    for (let i = 0; i < holdings.length; i++) {
-        if (holdings[i].tokenID == tokenID) {
-            holdings[i].amount = amount
-            break
-        }
-    }
-    return holdings
-}
-
-
 /*
  * [DELETE] 
  * v1/database/user/delete-user
@@ -371,13 +298,11 @@ module.exports = {
     createUser,
     createVendor,
     createLocation,
-    addHolding,
     getUser,
     getVendor,
     updateUsername,
     updateWalletAddress,
     updateLocation,
-    updateHolding,
     deleteUser,
     deleteVendor,
 }
