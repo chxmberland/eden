@@ -91,6 +91,10 @@ test('Ensuring updateUserHoldings() properly changes the holdings in a user docu
     expect(updatedUser.holdings.length).toBe(2)
     expect(updatedUser.holdings[1].tokenID).toBe(testTokenDocumentB.tokenID)
     expect(updatedUser.holdings[1].amount).toBe(initialAmountB)
+
+    // Ensuring that the function rejects invalid values
+    expect(await transactionApi.updateUserHoldings('bad-user-id', testTokenDocumentB.tokenID, initialAmountB)).toBe(null)
+    expect(await transactionApi.updateUserHoldings(testUserDocument.userID, 'bad-token-id', initialAmountB)).toBe(null)
 })
 
 test('Ensuring updateVendorHoldings() properly changes the holdings in a user document.', async () => {
@@ -133,6 +137,10 @@ test('Ensuring updateVendorHoldings() properly changes the holdings in a user do
     expect(updatedVendor.holdings.length).toBe(2)
     expect(updatedVendor.holdings[1].tokenID).toBe(testTokenDocumentB.tokenID)
     expect(updatedVendor.holdings[1].amount).toBe(initialAmountB)
+
+    // Ensuring that the function rejects invalid values
+    expect(await transactionApi.updateUserHoldings('bad-vendor-id', testTokenDocumentB.tokenID, initialAmountB)).toBe(null)
+    expect(await transactionApi.updateUserHoldings(testVendorDocument.vendorID, 'bad-token-id', initialAmountB)).toBe(null)
 })
 
 test('Ensuring createTransaction() properly creates a transaction between a user and a vendor.', async () => {

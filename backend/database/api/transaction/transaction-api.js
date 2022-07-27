@@ -4,6 +4,7 @@ const modelLocation = '../../models'
 const Transaction = require(`${modelLocation}/transaction-model.js`)
 const User = require(`${modelLocation}/user-model.js`)
 const Vendor = require(`${modelLocation}/vendor-model.js`)
+const Token = require(`${modelLocation}/token-model.js`)
 
 
 
@@ -144,6 +145,10 @@ async function ensureFunds(id, tokenID, amount) {
  * The updated user document.
 */
 async function updateUserHoldings(userID, tokenID, amount) {
+    // Ensuring the userID and tokenID are valid
+    if (await User.findOne({ userID: userID }) == null) return null
+    if (await Token.findOne({ tokenID: tokenID }) == null) return null
+
     // Finding the user
     const filter = { userID: userID }
     const projection = "holdings userID"
@@ -181,9 +186,13 @@ async function updateUserHoldings(userID, tokenID, amount) {
  * 
  * Returns:
  * 
- * The updated vendor document.
+ * The updated vendor document, null if there's an error.
 */
 async function updateVendorHoldings(vendorID, tokenID, amount) {
+    // Ensuring the vendorID and tokenID are valid
+    if (await Vendor.findOne({ vendorID: vendorID }) == null) return null
+    if (await Token.findOne({ tokenID: tokenID }) == null) return null
+
     // Finding the vendor and returning their vendorID and holdings 
     const filter = { vendorID: vendorID }
     const projection = "holdings vendorID"
