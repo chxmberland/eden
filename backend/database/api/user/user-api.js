@@ -105,6 +105,13 @@ async function addUniqueVendorID(savedDoc) {
  * Adding an additional location document.
 */
 async function createLocation(vendorIDs, country, city, street, streetNumber, postalCode) {
+    // Ensuring that the vendor IDs are valid
+    for (vendorID of vendorIDs) {
+        if (await Vendor.findOne({ vendorID: vendorID }) == null) {
+            return null
+        }
+    }
+
     // Initializing a new user document
     const newLocation = new Location({
         locationID: "",

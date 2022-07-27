@@ -106,7 +106,14 @@ test('Ensuring createVendor() only allows for unique usernames', async () => {
 test('Ensuring createLocation() properly creates a location document in the database.', async () => {
     // Creating the location
     await databaseApi.flushDatabase(process.env.FLUSH_PASS)
-    const testLocationDocument = await userApi.createLocation([], mockLocation.country, mockLocation.city, mockLocation.street, mockLocation.streetNumber, mockLocation.postalCode)
+    const testLocationDocument = await userApi.createLocation(
+        [], 
+        mockLocation.country, 
+        mockLocation.city, 
+        mockLocation.street, 
+        mockLocation.streetNumber, 
+        mockLocation.postalCode
+    )
 
     // Asserting the location was created correctly
     expect(testLocationDocument.locationID).toBe(`L-${testLocationDocument._id}`)
@@ -116,6 +123,18 @@ test('Ensuring createLocation() properly creates a location document in the data
     expect(testLocationDocument.street).toBe(mockLocation.street)
     expect(testLocationDocument.streetNumber).toBe(mockLocation.streetNumber)
     expect(testLocationDocument.postalCode).toBe(mockLocation.postalCode)
+
+    // Ensuring that the function does not accept invalid vendorIDs
+    const invalidLocationDocument = await userApi.createLocation(
+        ['fake-vendor-id'],
+        mockLocation.country, 
+        mockLocation.city, 
+        mockLocation.street, 
+        mockLocation.streetNumber, 
+        mockLocation.postalCode
+    )
+
+    expect(invalidLocationDocument).toBe(null)
 })
 
 test('Ensuring createLocation() properly related vendors and locations', async () => {

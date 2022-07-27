@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 require('dotenv').config() // Allows accsess to environment variables in .env file
 
 // Importing APIs
-const userAPI = require('./user/user-api.js')
+const userApi = require('./user/user-api.js')
 
 // Importing models
 const User = require('../models/user-model.js')
