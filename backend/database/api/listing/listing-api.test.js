@@ -80,6 +80,7 @@ test('Ensuring createAssetListing() properly creates an asset listing, and getAs
     expect(testAssetListingDocument.vendorID).toBe(testVendorDocument.vendorID)
     expect(testAssetListingDocument.info.assetName).toBe(mockAssetListing.info.assetName)
     expect(testAssetListingDocument.info.description).toBe(mockAssetListing.info.description)
+    expect(testAssetListingDocument.relatedTokenListings.length).toBe(0)
     expect(testAssetListingDocument.numberOfTokensListed).toBe(mockAssetListing.numberOfTokensListed)
     expect(testAssetListingDocument.numberOfTokensSold).toBe(0)
     expect(testAssetListingDocument.assetPrice).toBe(mockAssetListing.assetPrice)
@@ -119,13 +120,18 @@ test('Ensuring createTokenListing() properly creates a token listing and getToke
     // Getting the token listing
     testTokenListingDocument = await listingApi.getTokenListing(testTokenListingDocument.tokenListingID)
 
-    // Asserting the asset was created correctly
-    expect(testTokenListingDocument.tokenListingID).toBe(`TL-${testTokenListingDocument._id}`)
+    // Asserting the token was created correctly
+    expect(testTokenListingDocument.tokenListingID).toBe(`TKL-${testTokenListingDocument._id}`)
     expect(testTokenListingDocument.tokenID).toBe(testTokenDocument.tokenID)
     expect(testTokenListingDocument.sourceAssetListingID).toBe(testAssetListingDocument.assetListingID)
     expect(testTokenListingDocument.listeeID).toBe(testUserDocument.userID)
     expect(testTokenListingDocument.numberOfTokensListed).toBe(mockTokenListing.numberOfTokensListed)
     expect(testTokenListingDocument.numberOfTokensSold).toBe(0)
+
+    // Ensuring the token listing was added to the asset listings related token listing field
+    const updatedAssetListing = await listingApi.getAssetListing(testAssetListingDocument.assetListingID)
+    expect(updatedAssetListing.relatedTokenListings.length).toBe(1)
+    expect(updatedAssetListing.relatedTokenListings[0]).toBe(testTokenListingDocument.tokenListingID)
 })
 
 test('Ensuring updateAssetPrice() and updateAssetDescription() properly update an asset.', async () => {
@@ -196,9 +202,16 @@ test('Ensuring that deleteTokenListing() and deleteAssetListing() properly delet
         mockTokenListing.numberOfTokensListed
     )
 
-    // Deleting both listings
-    const assetDelResponse = await listingApi.deleteAssetListing(testAssetListingDocument.assetListingID)
+    // Deleting the token listing
     const tokenDelResponse = await listingApi.deleteTokenListing(testTokenListingDocument.tokenListingID)
+
+    // Ensuring the related asset has the token listing removed from it's related token listings field
+    const updatedAssetListing = await listingApi.getAssetListing(testAssetListingDocument.assetListingID)
+
+    expect(updatedAssetListing.relatedTokenListings.length).toBe(0)
+
+    // Deleting the asset listing
+    const assetDelResponse = await listingApi.deleteAssetListing(testAssetListingDocument.assetListingID)
 
     expect(assetDelResponse).toBe(true)
     expect(tokenDelResponse).toBe(true)

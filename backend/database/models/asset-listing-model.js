@@ -8,6 +8,7 @@ const assetListingModel = new mongoose.Schema({
         assetName: String,
         description: String
     },
+    relatedTokenListings: [String],
     numberOfTokensListed: Number,
     numberOfTokensSold: Number,
     assetPrice: Number
