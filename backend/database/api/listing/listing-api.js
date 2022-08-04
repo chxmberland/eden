@@ -42,16 +42,28 @@ async function createTokenListing(sourceAssetListingID, tokenID, listeeID, numbe
     })
     const savedTokenListing = await tokenListing.save()
 
-    // Adding a uniqueID
+    // Adding a uniqueID if saving the token was sucsessful
     if (savedTokenListing != null) {
-        const filter = { _id: savedTokenListing._id }
-        const update = { tokenListingID: `TL-${savedTokenListing._id}` }
-        const options = {
+        let filter = { _id: savedTokenListing._id }
+        let update = { tokenListingID: `TKL-${savedTokenListing._id}` }
+        let options = {
             new: true,
             upsert: false
         }
-        return await TokenListingModel.findOneAndUpdate(filter, update, options)
+        const uniqueTokenListing = await TokenListingModel.findOneAndUpdate(filter, update, options)
+
+        // Adding the token listing to the source asset ID in related listings
+        filter = { assetListingID: sourceAssetListingID }
+        update = { $addToSet: { relatedTokenListings: uniqueTokenListing.tokenListingID } }
+        options = {
+            new: true,
+            upsert: false
+        }
+        const updatedAssetListingDocument = await AssetListingModel.findOneAndUpdate(filter, update, options)
+
+        return uniqueTokenListing
     }
+
     return null
 }
 
@@ -246,10 +258,33 @@ async function updateAssetDescription(assetListingID, newName, newDescription) {
  * Returns true if the document was deleted, and false if not.
 */
 async function deleteTokenListing(tokenListingID) {
-    const filter = { tokenListingID: tokenListingID }
+    // Deleting the token listing ID from related asset listings
+    const tokenListing = await getTokenListing(tokenListingID)
+    const sourceAssetListing = await getAssetListing(tokenListing.sourceAssetListingID)
+
+    let index = 0
+    for (let i = 0; i < sourceAssetListing.relatedTokenListings.length; i++) {
+        if (sourceAssetListing.relatedTokenListings[i] == tokenListingID) {
+            index = i
+            break
+        }
+    }
+
+    let filter = { assetListingID: sourceAssetListing.assetListingID }
+    const update = { relatedTokenListings: sourceAssetListing.relatedTokenListings.splice(index, index) }
+    const options = {
+        new: true,
+        upsert: false
+    }
+    await AssetListingModel.findOneAndUpdate(filter, update, options)
+
+    // Deleting the token listing
+    filter = { tokenListingID: tokenListingID }
     const delRes = await TokenListingModel.deleteOne(filter)
     return delRes.acknowledged && delRes.deletedCount == 1
 }
+
+
 
 /*
  * Endpoint:
